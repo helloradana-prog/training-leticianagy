@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Letícia • Treino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF8F2;
+    --surface:#FFFFFF;
+    --card:#FFFFFF;
+    --card2:#FBF0F2;
+    --border:#F0E2D8;
+    --rose:#D98CA3;
+    --rose-dark:#B96380;
+    --rose-glow:rgba(217,140,163,0.16);
+    --gold:#C9A227;
+    --gold-light:#EAD9A0;
+    --gold-glow:rgba(201,162,39,0.16);
+    --text:#3A2E2A;
+    --muted:#9C8F86;
+    --faint:#E4D5CC;
+    --good:#7FAE8C;
+    --good-glow:rgba(127,174,140,0.16);
+    --danger:#C97575;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-weight:300;overflow-x:hidden;}
+  h1,h2,h3,.display{font-family:'Cormorant Garamond',serif;}
+  #splash{
+    position:fixed;inset:0;background:var(--bg);z-index:999;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transition:opacity .5s ease, visibility .5s ease;
+  }
+  #splash.hide{opacity:0;visibility:hidden;}
+  .splash-mark{
+    width:64px;height:64px;border-radius:50%;
+    background:linear-gradient(145deg,var(--rose),var(--gold));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:400;font-size:28px;color:#fff;
+    box-shadow:0 8px 30px var(--rose-glow);
+    margin-bottom:18px;
+  }
+  .splash-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:24px;letter-spacing:0.02em;color:var(--rose-dark);}
+  .splash-sub{color:var(--muted);font-size:12px;margin-top:6px;letter-spacing:0.04em;}
+
+  #app{opacity:0;transition:opacity .4s ease;padding-bottom:92px;min-height:100vh;}
+  #app.visible{opacity:1;}
+
+  header.topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(251,248,242,0.92);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+    padding:16px 18px 14px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .topbar-left{display:flex;align-items:center;gap:10px;}
+  .topbar-mark{width:32px;height:32px;border-radius:50%;background:linear-gradient(145deg,var(--rose),var(--gold));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:14px;color:#fff;}
+  .topbar-name{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:16px;color:var(--rose-dark);}
+  .topbar-sub{font-size:10px;color:var(--muted);letter-spacing:0.04em;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 6px var(--good);}
+  .status-wrap{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);}
+
+  .page{display:none;padding:18px;animation:fadeIn .3s ease;}
+  .page.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .section-eyebrow{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:0.12em;font-weight:600;margin-bottom:4px;}
+  .section-title{font-family:'Cormorant Garamond';font-style:italic;font-size:23px;font-weight:500;margin-bottom:14px;color:var(--text);}
+
+  .treino-switch{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;}
+  .treino-switch::-webkit-scrollbar{display:none;}
+  .treino-btn{
+    flex-shrink:0;padding:10px 16px;text-align:center;border-radius:12px;
+    background:var(--card);border:1px solid var(--border);
+    font-family:'Cormorant Garamond';font-weight:500;font-size:14px;color:var(--muted);
+    cursor:pointer;transition:all .2s;white-space:nowrap;
+  }
+  .treino-btn.active{background:linear-gradient(145deg,var(--rose),var(--rose-dark));color:#fff;border-color:transparent;box-shadow:0 4px 16px var(--rose-glow);}
+
+  .week-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:10px 14px;margin-bottom:16px;
+  }
+  .week-nav button{
+    width:34px;height:34px;border-radius:10px;background:var(--card2);border:1px solid var(--border);
+    color:var(--rose-dark);font-size:16px;cursor:pointer;
+  }
+  .week-nav button:disabled{opacity:0.3;cursor:not-allowed;}
+  .week-label{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:15px;}
+  .week-sub{font-size:10px;color:var(--muted);text-align:center;}
+
+  .tip-card{
+    background:linear-gradient(135deg,#F7E9DB,#F3D9DF);
+    border:1px solid var(--gold-light);border-radius:14px;padding:14px 16px;margin-bottom:18px;
+    display:flex;gap:12px;align-items:flex-start;
+  }
+  .tip-icon{font-size:18px;line-height:1;}
+  .tip-text{font-size:12.5px;color:#5c4148;line-height:1.55;}
+  .tip-label{font-size:10px;color:var(--rose-dark);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:3px;}
+
+  .ex-card{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:14px 16px;margin-bottom:12px;transition:border-color .2s;
+    box-shadow:0 2px 10px rgba(217,140,163,0.05);
+  }
+  .ex-card.done{border-color:var(--good);background:linear-gradient(180deg,var(--good-glow),var(--card));}
+  .ex-card.cardio{background:linear-gradient(180deg,#F7E9DB,var(--card));}
+  .ex-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .ex-name-wrap{display:flex;align-items:flex-start;gap:10px;flex:1;}
+  .checkbox{
+    width:24px;height:24px;border-radius:50%;border:2px solid var(--faint);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;
+    transition:all .2s;margin-top:1px;
+  }
+  .checkbox.checked{background:var(--good);border-color:var(--good);}
+  .checkbox.checked::after{content:"✓";color:#fff;font-size:13px;font-weight:700;}
+  .ex-name{font-family:'Cormorant Garamond';font-weight:500;font-size:15.5px;line-height:1.3;}
+  .ex-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+  .ex-obj{font-size:11px;color:#a87f88;margin-top:2px;font-style:italic;}
+  .rpe-tag{
+    font-size:10px;font-weight:600;padding:3px 9px;border-radius:8px;white-space:nowrap;
+    background:var(--card2);color:var(--gold);border:1px solid var(--gold-light);
+  }
+  .load-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .load-label{font-size:11px;color:var(--muted);margin-right:auto;}
+  .load-input{
+    width:70px;padding:8px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border);
+    color:var(--text);font-family:'Cormorant Garamond';font-size:16px;font-weight:500;text-align:center;
+    transition:border-color .2s;
+  }
+  .load-input:focus{outline:none;border-color:var(--rose);box-shadow:0 0 8px var(--rose-glow);}
+  .load-input::placeholder{color:var(--faint);}
+  .load-unit{font-size:12px;color:var(--muted);font-weight:500;}
+
+  .finish-btn{
+    width:100%;padding:16px;border-radius:16px;border:none;margin-top:8px;
+    background:linear-gradient(135deg,var(--rose),var(--rose-dark));
+    color:#fff;font-family:'Cormorant Garamond';font-weight:500;font-size:15px;letter-spacing:0.03em;
+    cursor:pointer;box-shadow:0 6px 20px var(--rose-glow);
+  }
+  .finish-btn:active{transform:scale(0.98);}
+  .finish-btn.finished{background:var(--good);box-shadow:none;}
+
+  .search-box{
+    width:100%;padding:12px 14px;border-radius:14px;background:var(--card);
+    border:1px solid var(--border);color:var(--text);font-size:13px;margin-bottom:16px;font-family:'Jost';
+  }
+  .search-box::placeholder{color:var(--faint);}
+
+  .rpe-scale{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px;}
+  .rpe-item{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:12.5px;}
+  .rpe-num{
+    width:28px;height:28px;border-radius:50%;background:var(--card2);
+    display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond';font-weight:500;font-size:12px;color:var(--gold);flex-shrink:0;border:1px solid var(--gold-light);
+  }
+  .rpe-desc{color:#6b545a;}
+
+  .guide-card{background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;}
+  .guide-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+  .guide-head .ex-name{margin:0;}
+  .guide-chevron{color:var(--rose-dark);font-size:14px;transition:transform .25s;}
+  .guide-chevron.open{transform:rotate(90deg);}
+  .guide-body{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+  .guide-body.open{max-height:600px;}
+  .guide-body-inner{padding:0 16px 16px;}
+  .guide-row{margin-bottom:10px;}
+  .guide-row-label{font-size:10px;color:var(--rose-dark);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin-bottom:3px;}
+  .guide-row-text{font-size:12.5px;color:#6b545a;line-height:1.5;}
+
+  .week-scroll{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;padding-bottom:4px;}
+  .week-scroll::-webkit-scrollbar{display:none;}
+  .week-chip{
+    flex-shrink:0;padding:8px 14px;border-radius:12px;background:var(--card);border:1px solid var(--border);
+    font-family:'Cormorant Garamond';font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;
+  }
+  .week-chip.active{background:linear-gradient(145deg,var(--rose),var(--rose-dark));color:#fff;border-color:transparent;}
+  .week-chip.filled::after{content:"•";color:var(--good);margin-left:5px;}
+
+  .eval-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;}
+  .eval-cat-name{font-family:'Cormorant Garamond';font-weight:500;font-size:14px;margin-bottom:10px;}
+  .nota-row{display:flex;gap:8px;}
+  .nota-btn{
+    flex:1;aspect-ratio:1;border-radius:12px;background:var(--card2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond';font-weight:500;font-size:15px;color:var(--muted);
+    cursor:pointer;transition:all .15s;
+  }
+  .nota-btn.selected{background:var(--rose);color:#fff;border-color:var(--rose);box-shadow:0 4px 12px var(--rose-glow);}
+
+  .field-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 6px;}
+  .field-input{
+    width:100%;padding:11px 14px;border-radius:12px;background:var(--card2);border:1px solid var(--border);
+    color:var(--text);font-size:13px;font-family:'Jost';resize:none;
+  }
+  .save-btn{
+    width:100%;padding:15px;border-radius:16px;border:none;margin-top:18px;
+    background:linear-gradient(135deg,var(--rose),var(--rose-dark));
+    color:#fff;font-family:'Cormorant Garamond';font-weight:500;font-size:14px;letter-spacing:0.03em;cursor:pointer;
+  }
+  .save-btn.saved{background:var(--good);}
+
+  .profile-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(145deg,var(--rose),var(--gold));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:22px;color:#fff;margin:0 auto 16px;}
+
+  .profile-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:4px 16px;margin-bottom:16px;}
+  .info-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);gap:10px;}
+  .info-row:last-child{border-bottom:none;}
+  .info-key{font-size:12px;color:var(--muted);}
+  .info-val{font-family:'Cormorant Garamond';font-size:14px;font-weight:500;text-align:right;}
+  .alert-card{
+    background:rgba(201,117,117,0.08);border:1px solid rgba(201,117,117,0.3);border-radius:14px;
+    padding:13px 15px;margin-bottom:16px;display:flex;gap:10px;
+  }
+  .alert-card .tip-text{color:#8a4c4c;}
+  .alert-card .tip-label{color:var(--danger);}
+
+  .measure-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .measure-item{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;}
+  .measure-key{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;}
+  .measure-val{font-family:'Cormorant Garamond';font-size:17px;font-weight:500;color:var(--rose-dark);margin-top:2px;}
+
+  .weight-editor{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;}
+  .weight-editor .cur-weight{font-family:'Cormorant Garamond';font-style:italic;font-size:36px;font-weight:500;color:var(--rose-dark);margin:8px 0;}
+  .weight-controls{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;}
+  .weight-btn{
+    width:44px;height:44px;border-radius:14px;background:var(--card2);border:1px solid var(--border);
+    color:var(--rose-dark);font-size:20px;cursor:pointer;
+  }
+
+  .eval-trim-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;}
+  .eval-trim-title{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:16px;color:var(--rose-dark);margin-bottom:10px;}
+  .eval-trim-text{font-size:13px;color:#6b545a;line-height:1.6;}
+
+  .treino-alt-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;}
+  .treino-alt-title{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-size:16px;color:var(--rose-dark);margin-bottom:10px;}
+  .treino-alt-subtitle{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;}
+  .treino-alt-info{font-size:12.5px;color:#6b545a;line-height:1.6;margin-bottom:12px;}
+  .ex-list{font-size:12.5px;color:#6b545a;line-height:1.8;}
+  .ex-list-item{margin-bottom:6px;}
+
+  nav.tabbar{
+    position:fixed;bottom:0;left:0;right:0;z-index:60;
+    background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);
+    border-top:1px solid var(--border);
+    display:flex;padding:9px 6px calc(9px + env(safe-area-inset-bottom));
+  }
+  .tab-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+    color:var(--faint);cursor:pointer;padding:4px 0;
+  }
+  .tab-item.active{color:var(--rose-dark);}
+  .tab-icon{width:20px;height:20px;}
+  .tab-label{font-size:9.5px;font-weight:500;letter-spacing:0.02em;}
+
+  .toast{
+    position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--good);color:#fff;padding:12px 22px;border-radius:30px;
+    font-family:'Cormorant Garamond';font-weight:500;font-size:13px;z-index:200;opacity:0;
+    transition:all .3s ease;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .empty-guide{text-align:center;color:var(--muted);font-size:13px;padding:30px 0;}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-mark">L</div>
+  <div class="splash-title">Letícia</div>
+  <div class="splash-sub">Preparando seu treino...</div>
+</div>
+
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-mark">L</div>
+      <div>
+        <div class="topbar-name">Letícia</div>
+        <div class="topbar-sub">Bem-estar</div>
+      </div>
+    </div>
+    <div class="status-wrap"><span class="status-dot"></span>Sincronizado</div>
+  </header>
+
+  <!-- TREINO -->
+  <div class="page active" id="page-treino">
+    <div class="section-eyebrow">Hoje</div>
+    <div class="section-title">Treino</div>
+
+    <div class="treino-switch" id="treino-switch"></div>
+
+    <div class="week-nav">
+      <button id="week-prev" onclick="changeWeek(-1)">‹</button>
+      <div>
+        <div class="week-label" id="week-label">Semana 1</div>
+        <div class="week-sub" id="week-sub">de 13 semanas</div>
+      </div>
+      <button id="week-next" onclick="changeWeek(1)">›</button>
+    </div>
+
+    <div class="tip-card">
+      <div class="tip-icon">🌸</div>
+      <div>
+        <div class="tip-label">Dica geral</div>
+        <div class="tip-text">Mantenha a respiração controlada para contração do abdômen — isso melhora a maioria dos movimentos.</div>
+      </div>
+    </div>
+
+    <div id="ex-container"></div>
+
+    <button class="finish-btn" id="finish-btn" onclick="finishTreino()">Finalizar Treino</button>
+  </div>
+
+  <!-- GUIA -->
+  <div class="page" id="page-guia">
+    <div class="section-eyebrow">Referência</div>
+    <div class="section-title">Guia de Execução</div>
+
+    <div class="rpe-scale">
+      <div class="tip-label" style="margin-bottom:8px;">Escala de intensidade (RPE)</div>
+      <div class="rpe-item"><div class="rpe-num">6</div><div class="rpe-desc">Confortável</div></div>
+      <div class="rpe-item"><div class="rpe-num">7</div><div class="rpe-desc">Moderadamente difícil</div></div>
+      <div class="rpe-item"><div class="rpe-num">8</div><div class="rpe-desc">Difícil, mas com margem</div></div>
+      <div class="rpe-item"><div class="rpe-num">9</div><div class="rpe-desc">Quase no limite</div></div>
+      <div class="rpe-item"><div class="rpe-num">10</div><div class="rpe-desc">Esforço máximo</div></div>
+    </div>
+
+    <input class="search-box" id="guia-search" placeholder="Buscar exercício..." oninput="renderGuide()">
+    <div id="guia-container"></div>
+  </div>
+
+  <!-- AVALIAÇÃO -->
+  <div class="page" id="page-avaliacao">
+    <div class="section-eyebrow">Feedback</div>
+    <div class="section-title">Avaliação Semanal</div>
+
+    <div class="week-scroll" id="eval-week-scroll"></div>
+    <div id="eval-container"></div>
+
+    <div class="field-label">Observações</div>
+    <textarea class="field-input" id="eval-obs" rows="3" placeholder="Como foi a semana, dores, dúvidas..."></textarea>
+
+    <button class="save-btn" id="eval-save-btn" onclick="saveEval()">Salvar Avaliação</button>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="page" id="page-perfil">
+    <div class="section-eyebrow">Aluna</div>
+    <div class="section-title">Perfil</div>
+
+    <div class="alert-card">
+      <div class="tip-icon">◆</div>
+      <div>
+        <div class="tip-label">Obstáculo</div>
+        <div class="tip-text">Inconstância.</div>
+      </div>
+    </div>
+
+    <div class="profile-avatar">L</div>
+
+    <div class="profile-card">
+      <div class="info-row"><span class="info-key">Nome</span><span class="info-val">Letícia Nagy</span></div>
+      <div class="info-row"><span class="info-key">Idade</span><span class="info-val">30 anos</span></div>
+      <div class="info-row"><span class="info-key">Objetivo</span><span class="info-val">Bem-estar</span></div>
+    </div>
+
+    <div class="field-label">Medidas de referência</div>
+    <div class="measure-grid">
+      <div class="measure-item"><div class="measure-val">85cm</div><div class="measure-key">Cintura</div></div>
+      <div class="measure-item"><div class="measure-val">110cm</div><div class="measure-key">Quadril</div></div>
+      <div class="measure-item"><div class="measure-val">66cm</div><div class="measure-key">Coxa</div></div>
+      <div class="measure-item"><div class="measure-val">33cm</div><div class="measure-key">Bíceps</div></div>
+    </div>
+
+    <div class="field-label">Peso atual</div>
+    <div class="weight-editor">
+      <div class="weight-controls">
+        <button class="weight-btn" onclick="adjustWeight(-0.5)">−</button>
+        <div class="cur-weight" id="cur-weight">80.0<span style="font-size:16px;color:var(--muted);"> kg</span></div>
+        <button class="weight-btn" onclick="adjustWeight(0.5)">+</button>
+      </div>
+    </div>
+    <button class="save-btn" id="weight-save-btn" onclick="saveWeight()">Salvar Peso</button>
+
+    <div class="field-label" style="margin-top:28px;">Avaliação Trimestral</div>
+    <div class="eval-trim-card">
+      <div class="eval-trim-text">
+        Letícia conseguiu bons resultados. É notável a mudança nas coxas e região abdominal. Ainda é necessário um trabalho com o abdômen, mas a evolução está muito boa. Suas novas medidas são: Coxa 62cm · Quadril 110cm · Cintura 82cm · Bíceps 36cm
+      </div>
+    </div>
+
+    <div class="field-label">Treino Alternativo para Fazer em Casa</div>
+    <div class="treino-alt-card">
+      <div class="treino-alt-subtitle">Realização</div>
+      <div class="treino-alt-info">
+        3 séries · Descansar 2 minutos entre as séries<br>
+        Todos os exercícios sem peso (só o corpo)
+      </div>
+      <div class="treino-alt-subtitle">Exercícios</div>
+      <div class="ex-list">
+        <div class="ex-list-item">• Elevação Pélvica no Chão — 20x</div>
+        <div class="ex-list-item">• Agachamento Alternado — 20x (10 fechado · 10 aberto)</div>
+        <div class="ex-list-item">• Afundo Alternado — 20x (10 de cada perna)</div>
+        <div class="ex-list-item">• Búlgaro — 20x (10x cada perna)</div>
+        <div class="ex-list-item">• Flexão c/ Joelho — 10x</div>
+        <div class="ex-list-item">• Flexão c/ Toque no Ombro — 10x cada lado</div>
+        <div class="ex-list-item">• Tríceps no Banco — 20x</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="tabbar">
+  <div class="tab-item active" data-page="treino" onclick="switchPage('treino')">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11M4 9l3-3m10 10l3 3M2 12l4-4m12 8l4 4M6.5 17.5l-3 3m14-17l3 3M9 4l-4 4m11 11l4-4" stroke-linecap="round"/></svg>
+    <div class="tab-label">Treino</div>
+  </div>
+  <div class="tab-item" data-page="guia" onclick="switchPage('guia')">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5" stroke-linecap="round"/></svg>
+    <div class="tab-label">Guia</div>
+  </div>
+  <div class="tab-item" data-page="avaliacao" onclick="switchPage('avaliacao')">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <div class="tab-label">Avaliação</div>
+  </div>
+  <div class="tab-item" data-page="perfil" onclick="switchPage('perfil')">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+    <div class="tab-label">Perfil</div>
+  </div>
+</nav>
+
+<div class="toast" id="toast">Salvo com sucesso</div>
+
+<script>
+// ── FIREBASE CONFIG ──────────────────────────────────────────────────────
+var FIREBASE_URL = 'https://helloradana-consultoria-default-rtdb.firebaseio.com';
+var ALUNO_ID = 'leticia';
+var TOTAL_WEEKS = 13;
+
+// ── DATA: EXERCÍCIOS POR TREINO ──────────────────────────────────────────
+var TREINOS = {
+  A: [
+    {id:'mob-a', nome:'Mobilidade', series:'2 séries', reps:'', descanso:'45s', rpe:'Leve', obj:'Articulações', carga:false},
+    {id:'core-a', nome:'Fortalecimento de Core', series:'3 séries', reps:'', descanso:'1min', rpe:'Leve', obj:'Respiração diafragmática + Deadbug + Glute Squeeze', carga:false},
+    {id:'cadeira-extensora', nome:'Cadeira Extensora', series:'4x', reps:'10', descanso:'1min', rpe:'8', obj:'Isolamento de quadríceps', carga:true},
+    {id:'cadeira-adutora', nome:'Cadeira Adutora', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Ativação dos adutores internos de coxa', carga:true},
+    {id:'leg45', nome:'Leg45', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Força quadríceps/glúteo', carga:true},
+    {id:'afundo-halter', nome:'Afundo c/ Halter', series:'3x', reps:'10', descanso:'60s', rpe:'8', obj:'Fortalecimento de quadríceps e posterior de coxa', carga:true}
+  ],
+  B: [
+    {id:'mob-b', nome:'Mobilidade', series:'2 séries', reps:'', descanso:'45s', rpe:'Leve', obj:'Articulações', carga:false},
+    {id:'core-b', nome:'Fortalecimento de Core', series:'3 séries', reps:'', descanso:'1min', rpe:'Leve', obj:'Respiração diafragmática + Deadbug + Glute Squeeze', carga:false},
+    {id:'puxada-barra', nome:'Puxada Alta c/ Barra', series:'4x', reps:'10', descanso:'1min', rpe:'7', obj:'Desenvolvimento das costas', carga:true},
+    {id:'remada-articulada', nome:'Remada Articulada', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Ganho de espessura das costas', carga:true},
+    {id:'remada-baixa-triangulo', nome:'Remada Baixa c/ Triângulo', series:'3x', reps:'10', descanso:'60s', rpe:'8', obj:'Fortalecimento miolo das costas', carga:true},
+    {id:'facepull-polia', nome:'Facepull na Polia', series:'3x', reps:'10', descanso:'60s', rpe:'7', obj:'Fortalecimento deltoides posteriores', carga:true},
+    {id:'biceps-martelo-alternado', nome:'Bíceps Martelo Alternado', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Fortalecimento braquial/bíceps', carga:true},
+    {id:'rosca-direta', nome:'Rosca Direta c/ Barra', series:'3x', reps:'10', descanso:'1min', rpe:'8', obj:'Fortalecimento de bíceps', carga:true},
+    {id:'sequencia-abdominal-b', nome:'Sequência de Abdominal', series:'vídeos', reps:'', descanso:'', rpe:'Leve', obj:'Core', carga:false}
+  ],
+  C: [
+    {id:'mob-c', nome:'Mobilidade', series:'2 séries', reps:'', descanso:'45s', rpe:'Leve', obj:'Articulações', carga:false},
+    {id:'core-c', nome:'Fortalecimento de Core', series:'3 séries', reps:'', descanso:'1min', rpe:'Leve', obj:'Respiração diafragmática + Deadbug + Glute Squeeze', carga:false},
+    {id:'elevacao-pelvica', nome:'Elevação Pélvica', series:'4x', reps:'10', descanso:'1min20s', rpe:'8', obj:'Desenvolvimento glúteo/posterior de coxa', carga:true},
+    {id:'stiff', nome:'Stiff', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Desenvolvimento posterior de coxa', carga:true},
+    {id:'agachamento-sumo', nome:'Agachamento Sumô', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Desenvolvimento de glúteo/fortalecimento de quadríceps', carga:true},
+    {id:'posterior-isolado', nome:'Máquina de Posterior Isolado', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Isolamento de posterior de coxa', carga:true},
+    {id:'coice-polia', nome:'Coice na Polia', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Isolamento e ativação glúteo máximo', carga:true},
+    {id:'cadeira-abdutora', nome:'Cadeira Abdutora', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Fortalecimento glúteo médio', carga:true}
+  ],
+  D: [
+    {id:'mob-d', nome:'Mobilidade', series:'2 séries', reps:'', descanso:'45s', rpe:'Leve', obj:'Articulações', carga:false},
+    {id:'core-d', nome:'Fortalecimento de Core', series:'3 séries', reps:'', descanso:'1min', rpe:'Leve', obj:'Respiração diafragmática + Deadbug + Glute Squeeze', carga:false},
+    {id:'flexao-joelhos', nome:'Flexão c/ Joelhos', series:'3x', reps:'10', descanso:'1min', rpe:'6', obj:'Estabilidade/Core/Peitoral', carga:false},
+    {id:'desenvolvimento', nome:'Desenvolvimento', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Força de ombros', carga:true},
+    {id:'supino-reto', nome:'Supino Reto', series:'3x', reps:'8', descanso:'60s', rpe:'7', obj:'Desenvolvimento do peitoral', carga:true},
+    {id:'triceps-barra-polia', nome:'Tríceps c/ Barra na Polia', series:'3x', reps:'10', descanso:'1min', rpe:'7', obj:'Isolamento do tríceps', carga:true},
+    {id:'elevacao-lateral-frontal-alternada', nome:'Elevação Lateral e Frontal Alternada', series:'3x', reps:'8', descanso:'1min', rpe:'7', obj:'Hipertrofia do deltoide lateral/fortalecimento do deltoide anterior', carga:true},
+    {id:'triceps-isolado', nome:'Tríceps Isolado', series:'3x', reps:'10', descanso:'1min', rpe:'8', obj:'Extensão e definição do tríceps', carga:true},
+    {id:'sequencia-abdominal-d', nome:'Sequência de Abdominal', series:'vídeos', reps:'', descanso:'', rpe:'Leve', obj:'Core', carga:false}
+  ]
+};
+
+var TREINO_LABELS = {A:'Quadríceps/Adutores', B:'Costas/Bíceps', C:'Posterior/Glúteo', D:'Peito/Ombro/Tríceps'};
+
+// ── DATA: GUIA DE EXECUÇÃO ────────────────────────────────────────────────
+var GUIA = [
+  {nome:'Mobilidade', como:'Realize movimentos lentos e controlados buscando amplitude sem compensação.', foco:'Articulações', erro:'Fazer rápido com pouca amplitude.', dica:'Priorize qualidade do movimento e não velocidade.'},
+  {nome:'Respiração Diafragmática', como:'Sente-se ou deite-se confortavelmente. Respire profundamente pelo nariz, sentindo o abdômen expandir (não o peito). Expire lentamente pela boca. Realize 10-15 ciclos respiratórios, focando na estabilidade do core.', foco:'Ativação do core profundo e assoalho pélvico', erro:'Respirar apenas com o peito, deixar a barriga retraída ou fazer rápido demais.', dica:'Coloque uma mão no abdômen para sentir a expansão lateral — o movimento deve ser 360° em volta da cintura.'},
+  {nome:'Deadbug', como:'Deite-se de costas, cotovelos estendidos para cima (braços verticais), quadris e joelhos em 90°. Mantenha o abdômen ativo e a lombar no chão. Estenda lentamente o braço direito e a perna esquerda, retornando à posição inicial. Alterne os lados.', foco:'Controle de tronco e dissociação de extremidades', erro:'Arquear a lombar, deixar a barriga solta ou fazer movimentos rápidos.', dica:'O abdômen deve estar ativo o tempo todo — imagine que está protegendo as costelas.'},
+  {nome:'Glute Squeeze', como:'Em pé ou sentado, contraia os glúteos maximamente por 2-3 segundos. Relaxe e repita. Pode ser realizado em séries de 15-20 repetições. O foco é aprender a ativar e sentir o glúteo.', foco:'Ativação glútea e sincronização com core', erro:'Contrair de forma superficial ou esquecer de relaxar completamente entre as repetições.', dica:'Aperte com força máxima — deve parecer que está segurando uma moeda entre as nádegas.'},
+  {nome:'Cadeira Extensora', como:'Pés levemente virados para fora, sem estender totalmente os joelhos; segure na força, desça controlado.', foco:'Quadríceps', erro:'Travar os joelhos, superestender ou relaxar os pés demais; gangorra contínua.', dica:'Suba contando 2 e desça contando 3.'},
+  {nome:'Afundo c/ Halter', como:'Em pé, halteres nas mãos ao lado do corpo. Dê um passo à frente com uma perna, abaixe o corpo até que o joelho traseiro quase toque o chão (sem deixar tocar). Volte à posição inicial empurrando o chão com o calcanhar da frente. Alterne as pernas.', foco:'Quadríceps, posterior de coxa e glúteo', erro:'Deixar o joelho traseiro bater no chão, joelho da frente passar muito da ponta do pé, ou perder o alinhamento do tronco.', dica:'Mantenha o tronco ereto e o peso distribuído entre os calcanhares — o movimento deve ser controlado na descida e explosivo na subida.'},
+  {nome:'Leg45', como:'Pernas na linha do ombro, pés levemente inclinados para fora; movimento de empurro, segurando mais embaixo do que em cima.', foco:'Quadríceps e glúteo', erro:'Tirar o quadril do banco ou deixar os joelhos superestendidos.', dica:'Pés firmes e lombar apoiada no banco.'},
+  {nome:'Cadeira Adutora', como:'Segure na força 2 segundos, solte controlado, com peso moderado para sentir bem o músculo.', foco:'Adutores da coxa', erro:'Impulsionar demais ou bater os pesos.', dica:'Aperte por 2 segundos na contração do músculo.'},
+  {nome:'Puxada Alta c/ Barra', como:'Puxe a barra em direção à parte superior do peito, mantendo o peito aberto e os cotovelos para baixo, voltados para fora.', foco:'Latíssimo do dorso', erro:'Puxar atrás da cabeça ou balançar o corpo.', dica:'Pense em aproximar os cotovelos do quadril, esmagando as costas.'},
+  {nome:'Remada Articulada', como:'Sente-se na máquina, peito firmemente encostado no apoio acolchoado, pegue as alças com pegada neutra e puxe em direção ao tronco em um movimento controlado. Retorne lentamente à posição inicial.', foco:'Costas médias e larga do dorso', erro:'Usar impulso do corpo, deixar o peito sair do apoio ou permitir que os cotovelos apontem para baixo.', dica:'O movimento deve começar da escápula — imagine que está aproximando os cotovelos da coluna antes de puxar os braços.'},
+  {nome:'Remada Baixa c/ Triângulo', como:'Sente-se na máquina com os pés firmes no chão, pegue o triângulo com as mãos próximas e puxe em direção ao abdômen retraindo as escápulas. Mantenha a contração por 1 segundo e retorne controlado.', foco:'Costas médias e dorsais', erro:'Curvar muito a lombar, usar impulso do corpo ou deixar a escápula sair da retração.', dica:'Inicie o movimento fechando as escápulas antes de puxar os braços para trás — é um movimento de "escápula puxando", não apenas de braço.'},
+  {nome:'Facepull na Polia', como:'Coloque a polia na altura do rosto. Pegue a corda com ambas as mãos. Puxe a corda em direção ao rosto, separando as extremidades da corda na altura das orelhas (como se fosse "partir" a corda). Retorne controlado.', foco:'Deltoide posterior, parte alta das costas e rotadores do ombro', erro:'Jogar o corpo para trás para gerar impulso, deixar os cotovelos caírem ou puxar para o peito em vez de para o rosto.', dica:'Este movimento é excelente para saúde dos ombros — sinta a retração e separação das escápulas no final do movimento.'},
+  {nome:'Bíceps Martelo Alternado', como:'Em pé, pegando halteres em cada mão com pegada neutra (palmas viradas uma para a outra). Mantenha os braços próximos ao corpo com leve flexão dos cotovelos. Flexione um cotovelo de cada vez, levando o halter em direção ao ombro. Alterne os lados em um movimento controlado.', foco:'Braquial, braquiorradial e bíceps', erro:'Balançar o tronco para gerar impulso, afastar os cotovelos do corpo ou fazer movimento rápido demais.', dica:'O halter segue uma trajetória reta para cima — imagine que está puxando a mão em direção ao ombro, não girando o halter.'},
+  {nome:'Rosca Direta c/ Barra', como:'Braços bem rente ao corpo, peito estufado, cotovelos fixos, movimento moderado.', foco:'Bíceps', erro:'Balançar o tronco ou projetar o cotovelo para frente.', dica:'Suba controlado e desça lentamente.'},
+  {nome:'Elevação Pélvica', como:'Cinto um palmo abaixo da cintura, no início das coxas; contraia o glúteo no topo, suba empurrando para cima; expire ao subir, inspire ao descer.', foco:'Glúteo máximo', erro:'Hiperestender a lombar em vez de contrair os glúteos.', dica:'Empurre o chão com os calcanhares.'},
+  {nome:'Stiff', como:'Segure a barra ou halteres na frente do corpo, leve flexão dos joelhos, empurre o quadril para trás descendo os pesos próximo às pernas; retorne contraindo o glúteo.', foco:'Posterior de coxa', erro:'Arredondar a lombar ou descer além da mobilidade própria.', dica:'Pense em empurrar o bumbum para trás e mantenha a coluna neutra.'},
+  {nome:'Agachamento Sumô', como:'Cinto um palmo abaixo da cintura; contraia o glúteo no topo, suba empurrando para cima; expire ao subir, inspire ao descer.', foco:'Glúteo máximo', erro:'Hiperestender a lombar em vez de contrair os glúteos.', dica:'Empurre o chão com os calcanhares.'},
+  {nome:'Máquina de Posterior Isolado', como:'Flexione os joelhos contra a resistência e retorne devagar.', foco:'Isolar os isquiotibiais', erro:'Soltar a carga rapidamente ou superestender a coluna.', dica:'Faça o retorno controlado.'},
+  {nome:'Coice na Polia', como:'Com a polia na altura do joelho, leve a perna para trás mantendo a coluna neutra, sem movimentar a lombar; retorne lentamente.', foco:'Glúteo máximo', erro:'Arquear a lombar ou balançar o tronco.', dica:'O movimento deve acontecer no quadril, não nas costas.'},
+  {nome:'Cadeira Abdutora', como:'Abra as pernas contando 2, feche contando 3, com peso moderado; segure 2 segundos na contração máxima.', foco:'Glúteo médio e abdutores', erro:'Inclinar o tronco ou deixar o peso sem controle na volta.', dica:'Mantenha o tronco firme e foque em sentir a lateral do glúteo.'},
+  {nome:'Flexão c/ Joelhos', como:'Coloque os joelhos no chão, mãos na largura dos ombros (um pouco mais aberta que a largura). Cotovelos levemente inclinados para trás, não abertos para os lados. Desça o corpo dobrando os cotovelos até o peito ficar próximo ao chão, depois suba em um movimento controlado.', foco:'Peitoral, tríceps e core', erro:'Encolher os ombros, deixar o quadril cair durante o movimento, abrir demais os cotovelos ou fazer rápido demais.', dica:'Core ativo o tempo todo; inspire ao descer, expire ao subir contraindo abdômen e glúteo.'},
+  {nome:'Desenvolvimento', como:'Empurre os halteres para cima da cabeça e retorne até a mão ficar na altura do nariz, braços/mãos voltados mais para diagonal.', foco:'Deltoides e estabilidade de ombros', erro:'Arquear excessivamente a lombar ou abrir os braços para trás demais.', dica:'Contraia o abdômen durante o movimento.'},
+  {nome:'Supino Reto', como:'Deitado no banco plano, pés firmes no chão ou apoiados no banco se for mais confortável. Pegada um pouco mais larga que a largura dos ombros. Desça a barra em direção ao peito (na altura do mamilo) em um movimento controlado. Expire ao empurrar a barra para cima até a extensão completa dos cotovelos (sem travar).', foco:'Peitoral, tríceps anterior e estabilidade de ombros', erro:'Bater a barra no peito com impulso, não descer o suficiente, ou deixar a escápula sair da retração.', dica:'Mantenha a escápula retraída contra o banco — pressione o banco com os pés para gerar força. O movimento deve ser controlado na descida (contando 3) e explosivo na subida (contando 2).'},
+  {nome:'Tríceps c/ Barra na Polia', como:'Coloque a polia na altura dos ombros ou um pouco acima. Pegue a barra com as duas mãos em pegada pronada (palmas viradas para baixo), cotovelos dobrados em 90°. Mantenha os cotovelos fixos ao lado do corpo. Estenda os cotovelos para baixo em um movimento de alavanca, até a extensão completa. Retorne controlado até a posição inicial.', foco:'Isolamento do tríceps', erro:'Abrir os cotovelos durante a execução, usar impulso do corpo ou não estender completamente.', dica:'Mantenha os cotovelos fixos e próximos ao corpo — o movimento deve vir apenas do tríceps, não do corpo inteiro.'},
+  {nome:'Elevação Lateral e Frontal Alternada', como:'Em pé, halteres nas mãos ao lado do corpo com pegada neutra. Mantenha leve flexão nos cotovelos. Eleve os halteres para o lado até a altura dos ombros (elevação lateral), retorne. Depois eleve para frente até a altura dos ombros (elevação frontal), retorne. Alterne os movimentos de forma controlada.', foco:'Deltoide lateral, anterior e estabilização do ombro', erro:'Usar impulso do tronco para gerar força, encolher os ombros ou elevar os braços acima da altura dos ombros.', dica:'Mantenha leve flexão dos cotovelos durante todo o movimento — imagine que está afastando os halteres do corpo, gerando "torque" no ombro.'},
+  {nome:'Tríceps Isolado', como:'Coluna levemente inclinada, movimento para baixo (não para o corpo); desça em 3 e suba em 3, controlado.', foco:'Contração completa do tríceps', erro:'Usar o tronco para gerar impulso.', dica:'Separe a corda apenas na extensão final dos cotovelos.'}
+];
+
+// ── DATA: AVALIAÇÃO ───────────────────────────────────────────────────────
+var EVAL_CATS = ['Frequência','Humor','Energia','Dificuldade','Dor ou desconforto','Sono','Alimentação'];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+var state = JSON.parse(localStorage.getItem('leticia-state') || '{}');
+if (!state.currentTreino) state.currentTreino = 'A';
+if (!state.currentWeek) state.currentWeek = 1;
+if (!state.finished) state.finished = {};
+if (!state.evalWeek) state.evalWeek = 1;
+if (!state.evalNotas) state.evalNotas = {};
+if (!state.evalObs) state.evalObs = {};
+if (!state.peso) state.peso = 80.0;
+
+function getKey(week, treino, exId) { return 'w' + week + '-' + treino + '-' + exId; }
+
+// ── PROGRESSÃO DE CARGA (peso inicial / meta) ─────────────────────────────
+var PROGRESSAO = {
+  'cadeira-extensora': {inicial:'33,5kg', meta:''},
+  'afundo-halter': {inicial:'8kg', meta:''},
+  'leg45': {inicial:'60kg', meta:''},
+  'cadeira-adutora': {inicial:'52,5kg', meta:'57kg'},
+  'puxada-barra': {inicial:'24kg', meta:''},
+  'remada-articulada': {inicial:'22,5kg', meta:''},
+  'remada-baixa-triangulo': {inicial:'21,5kg', meta:''},
+  'facepull-polia': {inicial:'8kg', meta:''},
+  'biceps-martelo-alternado': {inicial:'5kg', meta:''},
+  'rosca-direta': {inicial:'10kg', meta:''},
+  'elevacao-pelvica': {inicial:'60kg', meta:''},
+  'agachamento-sumo': {inicial:'10kg', meta:''},
+  'stiff': {inicial:'20kg', meta:''},
+  'posterior-isolado': {inicial:'5kg cada', meta:''},
+  'coice-polia': {inicial:'10kg', meta:''},
+  'cadeira-abdutora': {inicial:'55kg', meta:'57kg'},
+  'desenvolvimento': {inicial:'5kg', meta:''},
+  'supino-reto': {inicial:'20kg', meta:''},
+  'triceps-barra-polia': {inicial:'12,5kg', meta:''},
+  'elevacao-lateral-frontal-alternada': {inicial:'4kg', meta:''},
+  'triceps-isolado': {inicial:'3kg', meta:''}
+};
+
+// ── SAVE QUEUE (corrigido) ──────────────────────────────────────────────
+var saveTimer = null;
+var saveInFlight = false;
+var savePendingAfterFlight = false;
+
+function saveState() {
+  state._updated = new Date().toISOString();
+  localStorage.setItem('leticia-state', JSON.stringify(state));
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSaveToFirebase, 350);
+}
+
+function flushSaveToFirebase() {
+  if (saveInFlight) { savePendingAfterFlight = true; return; }
+  saveInFlight = true;
+  var payload = JSON.stringify(state);
+  fetch(FIREBASE_URL + '/alunos/' + ALUNO_ID + '/state.json', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: payload
+  }).then(function(res) {
+    if (!res.ok) throw new Error('Firebase respondeu ' + res.status);
+  }).catch(function() {
+    console.warn('Firebase offline, salvo localmente. Tentando de novo em 2s.');
+    setTimeout(function() { saveState(); }, 2000);
+  }).finally(function() {
+    saveInFlight = false;
+    if (savePendingAfterFlight) {
+      savePendingAfterFlight = false;
+      flushSaveToFirebase();
+    }
+  });
+}
+
+async function loadFromFirebase() {
+  try {
+    var res = await fetch(FIREBASE_URL + '/alunos/' + ALUNO_ID + '/state.json');
+    if (res.ok) {
+      var d = await res.json();
+      if (d && d._updated && d._updated > (state._updated || '')) {
+        state = d;
+        localStorage.setItem('leticia-state', JSON.stringify(state));
+      }
+    }
+  } catch(e) {}
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+function switchPage(name) {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+  document.getElementById('page-' + name).classList.add('active');
+
+  var tabs = document.querySelectorAll('.tab-item');
+  for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('active');
+  document.querySelector('.tab-item[data-page="' + name + '"]').classList.add('active');
+
+  if (name === 'guia') renderGuide();
+  if (name === 'avaliacao') renderEval();
+}
+
+// ── TREINO ────────────────────────────────────────────────────────────────
+function renderTreinoSwitch() {
+  var wrap = document.getElementById('treino-switch');
+  wrap.innerHTML = '';
+  var keys = ['A','B','C','D'];
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var btn = document.createElement('div');
+    btn.className = 'treino-btn' + (state.currentTreino === k ? ' active' : '');
+    btn.textContent = 'Treino ' + k;
+    btn.onclick = (function(kk) { return function() { state.currentTreino = kk; renderTreinoSwitch(); renderExercises(); }; })(k);
+    wrap.appendChild(btn);
+  }
+}
+
+function weekKey() {
+  return state.currentTreino + '-' + state.currentWeek;
+}
+
+function renderExercises() {
+  document.getElementById('week-label').textContent = 'Semana ' + state.currentWeek;
+  document.getElementById('week-sub').textContent = 'de ' + TOTAL_WEEKS + ' semanas — ' + TREINO_LABELS[state.currentTreino];
+  document.getElementById('week-prev').disabled = state.currentWeek <= 1;
+  document.getElementById('week-next').disabled = state.currentWeek >= TOTAL_WEEKS;
+
+  var container = document.getElementById('ex-container');
+  container.innerHTML = '';
+  var list = TREINOS[state.currentTreino];
+  var wk = weekKey();
+
+  for (var i = 0; i < list.length; i++) {
+    var ex = list[i];
+    var key = getKey(state.currentWeek, state.currentTreino, ex.id);
+    var exData = state[key] || {};
+    var isChecked = !!exData.done;
+    var loadVal = exData.load !== undefined ? exData.load : 0;
+
+    var card = document.createElement('div');
+    card.className = 'ex-card' + (isChecked ? ' done' : '') + (ex.cardio ? ' cardio' : '');
+
+    var metaParts = [ex.series];
+    if (ex.reps) metaParts.push(ex.reps);
+    if (ex.descanso) metaParts.push('Descanso ' + ex.descanso);
+    var metaStr = metaParts.join(' · ');
+
+    var rpeLabel = (ex.rpe === 'Leve') ? 'Leve' : 'RPE ' + ex.rpe;
+
+    var html = '';
+    html += '<div class="ex-top">';
+    html += '<div class="ex-name-wrap">';
+    html += '<div class="checkbox' + (isChecked ? ' checked' : '') + '" data-check="' + key + '"></div>';
+    html += '<div><div class="ex-name">' + ex.nome + '</div><div class="ex-meta">' + metaStr + '</div><div class="ex-obj">' + ex.obj + '</div></div>';
+    html += '</div>';
+    html += '<div class="rpe-tag">' + rpeLabel + '</div>';
+    html += '</div>';
+
+    if (ex.carga) {
+      html += '<div class="load-row">';
+      html += '<span class="load-label">Carga</span>';
+      html += '<input type="number" class="load-input" data-load="' + key + '" value="' + loadVal + '" step="0.5" min="0" placeholder="0">';
+      html += '<span class="load-unit">kg</span>';
+      html += '</div>';
+    }
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  }
+
+  var checks = container.querySelectorAll('[data-check]');
+  for (var c = 0; c < checks.length; c++) {
+    checks[c].onclick = function() {
+      var key = this.getAttribute('data-check');
+      if (!state[key]) state[key] = {};
+      state[key].done = !state[key].done;
+      saveState();
+      renderExercises();
+    };
+  }
+  var loadInputs = container.querySelectorAll('[data-load]');
+  for (var l = 0; l < loadInputs.length; l++) {
+    loadInputs[l].onchange = function() {
+      var key = this.getAttribute('data-load');
+      var val = parseFloat(this.value) || 0;
+      if (val < 0) val = 0;
+      if (!state[key]) state[key] = {};
+      state[key].load = val;
+      saveState();
+      renderExercises();
+    };
+  }
+
+  var finBtn = document.getElementById('finish-btn');
+  if (state.finished[wk]) {
+    finBtn.textContent = 'Treino Finalizado ✓';
+    finBtn.classList.add('finished');
+  } else {
+    finBtn.textContent = 'Finalizar Treino';
+    finBtn.classList.remove('finished');
+  }
+}
+
+function changeWeek(dir) {
+  var next = state.currentWeek + dir;
+  if (next < 1 || next > TOTAL_WEEKS) return;
+  state.currentWeek = next;
+  saveState();
+  renderExercises();
+}
+
+function finishTreino() {
+  var wk = weekKey();
+  state.finished[wk] = true;
+  saveState();
+  renderExercises();
+  showToast('Treino finalizado! 🌸');
+}
+
+// ── GUIA ──────────────────────────────────────────────────────────────────
+var openGuideId = null;
+function renderGuide() {
+  var container = document.getElementById('guia-container');
+  var query = document.getElementById('guia-search').value.toLowerCase();
+  container.innerHTML = '';
+
+  var filtered = GUIA.filter(function(g) { return g.nome.toLowerCase().indexOf(query) !== -1; });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-guide">Nenhum exercício encontrado.</div>';
+    return;
+  }
+
+  for (var i = 0; i < filtered.length; i++) {
+    var g = filtered[i];
+    var isOpen = openGuideId === g.nome;
+    var card = document.createElement('div');
+    card.className = 'guide-card';
+    var html = '';
+    html += '<div class="guide-head" data-guide="' + g.nome + '">';
+    html += '<div class="ex-name">' + g.nome + '</div>';
+    html += '<div class="guide-chevron' + (isOpen ? ' open' : '') + '">▸</div>';
+    html += '</div>';
+    html += '<div class="guide-body' + (isOpen ? ' open' : '') + '">';
+    html += '<div class="guide-body-inner">';
+    html += '<div class="guide-row"><div class="guide-row-label">Como fazer</div><div class="guide-row-text">' + g.como + '</div></div>';
+    html += '<div class="guide-row"><div class="guide-row-label">Foco</div><div class="guide-row-text">' + g.foco + '</div></div>';
+    html += '<div class="guide-row"><div class="guide-row-label">Erro comum</div><div class="guide-row-text">' + g.erro + '</div></div>';
+    html += '<div class="guide-row"><div class="guide-row-label">Dica prática</div><div class="guide-row-text">' + g.dica + '</div></div>';
+    html += '</div></div>';
+    card.innerHTML = html;
+    container.appendChild(card);
+  }
+
+  var heads = container.querySelectorAll('[data-guide]');
+  for (var h = 0; h < heads.length; h++) {
+    heads[h].onclick = function() {
+      var name = this.getAttribute('data-guide');
+      openGuideId = (openGuideId === name) ? null : name;
+      renderGuide();
+    };
+  }
+}
+
+// ── AVALIAÇÃO ─────────────────────────────────────────────────────────────
+function renderEval() {
+  var scroll = document.getElementById('eval-week-scroll');
+  scroll.innerHTML = '';
+  for (var w = 1; w <= TOTAL_WEEKS; w++) {
+    var chip = document.createElement('div');
+    var hasData = state.evalNotas[w] && Object.keys(state.evalNotas[w]).length > 0;
+    chip.className = 'week-chip' + (state.evalWeek === w ? ' active' : '') + (hasData ? ' filled' : '');
+    chip.textContent = 'S' + w;
+    chip.onclick = (function(ww) { return function() { state.evalWeek = ww; renderEval(); }; })(w);
+    scroll.appendChild(chip);
+  }
+
+  var container = document.getElementById('eval-container');
+  container.innerHTML = '';
+  if (!state.evalNotas[state.evalWeek]) state.evalNotas[state.evalWeek] = {};
+
+  for (var i = 0; i < EVAL_CATS.length; i++) {
+    var cat = EVAL_CATS[i];
+    var selected = state.evalNotas[state.evalWeek][cat] || 0;
+    var card = document.createElement('div');
+    card.className = 'eval-card';
+    var html = '<div class="eval-cat-name">' + cat + '</div><div class="nota-row">';
+    for (var n = 1; n <= 5; n++) {
+      html += '<div class="nota-btn' + (selected === n ? ' selected' : '') + '" data-cat="' + cat + '" data-nota="' + n + '">' + n + '</div>';
+    }
+    html += '</div>';
+    card.innerHTML = html;
+    container.appendChild(card);
+  }
+
+  var notaBtns = container.querySelectorAll('[data-nota]');
+  for (var b = 0; b < notaBtns.length; b++) {
+    notaBtns[b].onclick = function() {
+      var cat = this.getAttribute('data-cat');
+      var nota = parseInt(this.getAttribute('data-nota'), 10);
+      state.evalNotas[state.evalWeek][cat] = nota;
+      saveState();
+      renderEval();
+    };
+  }
+
+  document.getElementById('eval-obs').value = state.evalObs[state.evalWeek] || '';
+  var saveBtn = document.getElementById('eval-save-btn');
+  saveBtn.textContent = 'Salvar Avaliação';
+  saveBtn.classList.remove('saved');
+}
+
+function saveEval() {
+  state.evalObs[state.evalWeek] = document.getElementById('eval-obs').value;
+  saveState();
+  var btn = document.getElementById('eval-save-btn');
+  btn.textContent = 'Salvo ✓';
+  btn.classList.add('saved');
+  showToast('Avaliação salva!');
+  renderEval();
+}
+
+// ── PERFIL ────────────────────────────────────────────────────────────────
+function renderPerfil() {
+  document.getElementById('cur-weight').innerHTML = state.peso.toFixed(1) + '<span style="font-size:16px;color:var(--muted);"> kg</span>';
+}
+
+function adjustWeight(delta) {
+  state.peso = Math.max(30, state.peso + delta);
+  renderPerfil();
+}
+
+function saveWeight() {
+  saveState();
+  var btn = document.getElementById('weight-save-btn');
+  btn.textContent = 'Salvo ✓';
+  btn.classList.add('saved');
+  showToast('Peso atualizado!');
+  setTimeout(function() { btn.textContent = 'Salvar Peso'; btn.classList.remove('saved'); }, 1800);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2200);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(async function() {
+    await loadFromFirebase();
+    document.getElementById('splash').classList.add('hide');
+    document.getElementById('app').classList.add('visible');
+    renderTreinoSwitch();
+    renderExercises();
+    renderPerfil();
+  }, 1400);
+});
+</script>
+</body>
+</html>
